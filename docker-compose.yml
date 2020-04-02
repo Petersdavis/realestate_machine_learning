@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  db:
+    container_name: db
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: test123
+      MYSQL_DATABASE: realestate
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test123
+    volumes:
+      - data-volume:/var/lib/mysql
+    ports:
+      - 3306:3306
+volumes:
+  data-volume:
