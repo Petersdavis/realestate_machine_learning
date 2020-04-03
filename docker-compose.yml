@@ -1,7 +1,7 @@
 version: "3.7"
 services:
-  db:
-    container_name: db
+  mariadb:
+    container_name: mariadb
     image: mariadb:latest
     environment:
       MYSQL_ROOT_PASSWORD: test123
@@ -11,6 +11,22 @@ services:
     volumes:
       - data-volume:/var/lib/mysql
     ports:
-      - 3306:3306
+      - 127.0.0.1:3333:3306
+    networks:
+      - data_network
+    
+  py_real_estate_scraping:
+    container_name: real_estate
+    build: .
+    depends_on:
+      - mariadb
+    ports:
+      - 127.0.0.1:81:80
+    links:
+      - mariadb:db
+    networks:
+      - data_network
 volumes:
   data-volume:
+networks:
+  data_network:

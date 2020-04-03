@@ -94,12 +94,13 @@ def searchRealEstate(targetLat, targetLong, page):
   countResults = int(y["Paging"]["TotalRecords"])
   recordsPerPage = int(y["Paging"]["RecordsPerPage"])
   remainingResults = countResults-(recordsPerPage * page)
+  print("Fetched Results", countResults)
+  print("Remaining Results", remainingResults)
+  
   if remainingResults > 0:
     randomSleep.sleep(10)
     results = results + searchRealEstate(targetLat, targetLong, page + 1)
   
-  print("Results Here:", len(results))
-  print("Expected Results:", countResults)
   return results
 
 

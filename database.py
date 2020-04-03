@@ -1,10 +1,12 @@
-import mysql.connector
+import mysql.connector as mariadb
+
 def connect():
-  mydb = mysql.connector.connect(
-    host="localhost",
-    user="test",
+  mydb = mariadb.connect(
+    host="127.0.0.1",
+    user="root",
+    port="3333",
     passwd="test123",
-    database="realestate",
+    db="realestate",
     autocommit=True
   )
   return mydb
@@ -36,8 +38,6 @@ def upsertListings(listings, db):
       ))
     cursor.executemany(sql, tups)
     db.commit
-    print(cursor.rowcount, "record inserted.")
-    print(len(listings))
   except mysql.connector.Error as error:
     print("parameterized query failed {}".format(error))
   finally:
@@ -72,10 +72,8 @@ def getActiveListings(db):
   return data
 
 def compareResultsToActiveListings(results, activeListing):
-  newListings =[]
-  closedListings=[]
-  modifiedListings=[]
-  listingEvents =[]
+  Listings =[]
+  Events =[]
 
   for record in results:
     foundExistingRecord = False
@@ -83,15 +81,15 @@ def compareResultsToActiveListings(results, activeListing):
       if(record['mlsId'] == listing['mlsId']):
         foundExistingRecord = True
         if(record['price'] != listing['price']):
-          modifiedListings.append(record)
+          Listings.append(record)
           if(record['price'] > listing['price']):
-            listingEvents.append({'type':"INCREASE_PRICE", 'mlsId':record['mlsId'] })
+            Events.append({'type':"INCREASE_PRICE", 'mlsId':record['mlsId'] })
           else:
-            listingEvents.append({'type':"DECREASE_PRICE", 'mlsId':record['mlsId'] })
+            Events.append({'type':"DECREASE_PRICE", 'mlsId':record['mlsId'] })
     
     if not foundExistingRecord:
-      newListings.append(record)
-      listingEvents.append({'type':"NEW_LISTING", 'mlsId':record['mlsId'] })
+      Listings.append(record)
+      Events.append({'type':"NEW_LISTING", 'mlsId':record['mlsId'] })
 
   for listing in activeListing:
     listingStillExists = False
@@ -100,17 +98,29 @@ def compareResultsToActiveListings(results, activeListing):
         listingStillExists = True
     if not listingStillExists:
       listing.active = 0
-      closedListings.append(listing) 
-      listingEvents.append({'type':"CLOSED_LISTING", 'mlsId':record['mlsId'] })
+      Listings.append(listing) 
+      Events.append({'type':"CLOSED_LISTING", 'mlsId':record['mlsId'] })
+  return Listings, Events
 
-
-
-  return newListings, closedListings, modifiedListings, listingEvents
-
-#def getListingsDiff(currentListings, activeListings):
-
-
-
+def insertEvents(events, db):
+  try:
+    cursor = db.cursor(prepared=True)
+    sql = """ INSERT INTO events
+                        ( type, mlsId ) VALUES (%s, %s)"""  
+   
+    tups = []
+    for event in events:
+      tups.append((
+        event["type"],
+        event["mlsId"]
+      ))
+    cursor.executemany(sql, tups)
+    db.commit
+  except mysql.connector.Error as error:
+    print("parameterized query failed {}".format(error))
+  finally:
+    if (db.is_connected()):
+      cursor.close()
 
 
 
