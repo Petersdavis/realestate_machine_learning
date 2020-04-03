@@ -10,7 +10,7 @@ import randomSleep
 import time
 
 while(True):
-  time.sleep(6)
+  time.sleep(1)
   db = database.connect()
   activeListings = database.getActiveListings(db)
 
@@ -20,8 +20,9 @@ while(True):
     randomSleep.sleep(1)
     locationName = location["name"]
     results = results + realtorca.searchRealEstate(location["lat"], location["long"], 1)
+    break
   parsedResults = list(map(realtorca.parseResult, results))
-  Listings, Events = database.compareResultsToActiveListings(results, activeListings)
+  Listings, Events = database.compareResultsToActiveListings(parsedResults, activeListings)
 
   database.upsertListings(Listings, db)
   database.insertEvents(Events, db)

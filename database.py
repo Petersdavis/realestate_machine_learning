@@ -78,28 +78,28 @@ def compareResultsToActiveListings(results, activeListing):
   for record in results:
     foundExistingRecord = False
     for listing in activeListing:
-      if(record['mlsId'] == listing['mlsId']):
+      if(record['listingId'] == listing['listingId']):
         foundExistingRecord = True
         if(record['price'] != listing['price']):
           Listings.append(record)
           if(record['price'] > listing['price']):
-            Events.append({'type':"INCREASE_PRICE", 'mlsId':record['mlsId'] })
+            Events.append({'type':"INCREASE_PRICE", 'listingId':record['listingId'] })
           else:
-            Events.append({'type':"DECREASE_PRICE", 'mlsId':record['mlsId'] })
+            Events.append({'type':"DECREASE_PRICE", 'listingId':record['listingId'] })
     
     if not foundExistingRecord:
       Listings.append(record)
-      Events.append({'type':"NEW_LISTING", 'mlsId':record['mlsId'] })
+      Events.append({'type':"NEW_LISTING", 'listingId':record['listingId'] })
 
   for listing in activeListing:
     listingStillExists = False
     for record in results:
-      if(record['mlsId'] == listing['mlsId']):
+      if(record['listingId'] == listing['listingId']):
         listingStillExists = True
     if not listingStillExists:
-      listing.active = 0
+      listing["active"] = 0
       Listings.append(listing) 
-      Events.append({'type':"CLOSED_LISTING", 'mlsId':record['mlsId'] })
+      Events.append({'type':"CLOSED_LISTING", 'listingId':record['listingId'] })
   return Listings, Events
 
 def insertEvents(events, db):
@@ -112,7 +112,7 @@ def insertEvents(events, db):
     for event in events:
       tups.append((
         event["type"],
-        event["mlsId"]
+        event["listingId"]
       ))
     cursor.executemany(sql, tups)
     db.commit
